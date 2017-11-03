@@ -41,7 +41,7 @@ var Io = {
     fold: fold,
 }
 
-var Lift = {
+var Action = {
     enter: function (state) {
         return function () {
             return Io.enter(state);
@@ -78,7 +78,9 @@ function _isCallable(o) {
     return typeof o === 'function';
 }
 
-function bind(state, effects) {
+function bind(state, effects, _options) {
+    _options = _options || {};
+
     function raise(error) {
         if (!effects.onError) throw error;
         effects.onError(error);
@@ -112,39 +114,47 @@ function bind(state, effects) {
         }
         else {
             var io = this;
-            var cmd = action(state, effects);
-            if (cmd === void 0) return;
-            if (cmd.then) {
-                cmd.then(function (c) {
-                    if (_isCallable(c)) {
-                        c(io);
-                    }
-                    else {
-                        enter(c);
-                    }
-                }).catch(raise);
+            try {
+                var cmd = action(state, effects);
+                if (cmd === void 0) return;
+                if (cmd.then) {
+                    cmd.then(function (c) {
+                        if (_isCallable(c)) {
+                            c(io);
+                        }
+                        else if (!_options.strictReturn) {
+                            enter(c);
+                        }
+                    }).catch(raise);
+                }
+                else if (_isCallable(cmd)) {
+                    cmd(io);
+                }
+                else if (!_options.strictReturn) {
+                    enter(cmd);
+                }
             }
-            else if (_isCallable(cmd)) {
-                cmd(io);
-            }
-            else {
-                enter(cmd);
+            catch (e) {
+                raise(e);
             }
         }
     }
 
-    reenter();
-    return {
+    if (!_options.silentStart) {
+        reenter();
+    }
+    var io = {
         enter: enter,
         reenter: reenter,
         run: run,
         raise: raise,
     };
+    return io.run.bind(io);
 }
 
-function whenify(union, branchesAsString, fallback) {
-    branchesAsString = branchesAsString || {};
-    fallback = fallback || 'else';
+function whenify(union, _branchesAsString, _fallback) {
+    _branchesAsString = _branchesAsString || {};
+    _fallback = _fallback || 'otherwise';
     var branches = Object.getOwnProperties(union).filter(function (k) {
         return _isCallable(union[k]);
     });
@@ -152,18 +162,18 @@ function whenify(union, branchesAsString, fallback) {
         var missing = branches.filter(function (k) {
             return !selector.hasOwnProperty(k);
         });
-        var hasFallback = selector.hasOwnProperty(fallback);
-        for (var k of missing) {
+        var hasFallback = selector.hasOwnProperty(_fallback);
+        for (var k in missing) {
             var branch = missing[k];
             if (hasFallback) {
                 Object.defineProperty(selector, branch, {
                     value: function () {
-                        return selector[fallback]();
+                        return selector[_fallback]();
                     }
                 });
             }
             else {
-                var repr = branchesAsString[branch];
+                var repr = _branchesAsString[branch];
                 Object.defineProperty(selector, branch, {
                     value: function (_varArgs) {
                         var args = Array.apply(null, arguments);
@@ -182,7 +192,7 @@ function whenify(union, branchesAsString, fallback) {
 
 module.exports = {
     Io: Io,
-    Lift: Lift,
+    Action: Action,
     bind: bind,
     whenify: whenify,
 }
