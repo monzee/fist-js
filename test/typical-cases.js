@@ -22,9 +22,9 @@ describe('Basics', () => {
         let foo = bind('foo', {
             onEnter: _ => count++,
         });
-        assert.equal(count, 1);
+        expect(1)(count);
         foo(s => Io.enter(s + 'bar'));
-        assert.equal(count, 2);
+        expect(2)(count);
         foo(expect('foobar'));
     });
 
@@ -33,9 +33,9 @@ describe('Basics', () => {
         let foo = bind('foo', {
             onEnter: _ => count++,
         });
-        assert.equal(count, 1);
+        expect(1)(count);
         foo(_ => Io.reenter());
-        assert.equal(count, 2);
+        expect(2)(count);
     });
 
     it('can disable initial call to enter function', () => {
@@ -43,9 +43,9 @@ describe('Basics', () => {
         let foo = bind('foo', {
             onEnter: _ => count++,
         }, {silentStart: true});
-        assert.equal(count, 0);
+        expect(0)(count);
         foo(_ => Io.reenter());
-        assert.equal(count, 1);
+        expect(1)(count);
     });
 
     it('#run(any -> any) is actually the same as #run(any -> Io#enter(any))', () => {
@@ -92,7 +92,7 @@ describe('Basics', () => {
         });
         assert.strictEqual(error, void 0);
         num(_ => Io.raise('hi'));
-        assert.equal(error, 'hi');
+        expect('hi')(error);
     });
 
     it('can catch errors thrown in actions', () => {
@@ -101,7 +101,7 @@ describe('Basics', () => {
             onError: e => error = e,
         });
         num(_ => { throw 'hello' });
-        assert.equal(error, 'hello');
+        expect('hello')(error);
     });
 });
 
@@ -116,23 +116,23 @@ describe('Shortcuts', () => {
 
         num(Action.enter(100));
         num(expect(100));
-        assert.equal(count, 2);
+        expect(2)(count);
 
         num(Action.reenter());
         num(Action.reenter());
         num(Action.reenter());
-        assert.equal(count, 5);
+        expect(5)(count);
 
         num(Action.raise('hello'));
-        assert.equal(error, 'hello');
+        expect('hello')(error);
     });
 
     it("can use the second arg to #bind() as the enter function", () => {
         let count = 0;
         let num = bind(0, _ => count++);
-        assert.equal(count, 1);
+        expect(1)(count);
         num(Action.enter(-1));
-        assert.equal(count, 2);
+        expect(2)(count);
     });
 
     it("can run a sequence of actions with Action#run(...(any -> any))", () => {

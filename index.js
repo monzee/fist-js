@@ -78,8 +78,9 @@ function _isCallable(o) {
     return typeof o === 'function';
 }
 
-function bind(state, effects, _options) {
-    _options = _options || {};
+function bind(state, _effects, _options) {
+    var effects = _effects || {};
+    var options = _options || {};
 
     function raise(error) {
         if (!effects.onError) throw error;
@@ -122,7 +123,7 @@ function bind(state, effects, _options) {
                         if (_isCallable(c)) {
                             c(io);
                         }
-                        else if (!_options.strictReturn) {
+                        else if (!options.strictReturn) {
                             enter(c);
                         }
                     }).catch(raise);
@@ -130,7 +131,7 @@ function bind(state, effects, _options) {
                 else if (_isCallable(cmd)) {
                     cmd(io);
                 }
-                else if (!_options.strictReturn) {
+                else if (!options.strictReturn) {
                     enter(cmd);
                 }
             }
@@ -140,7 +141,7 @@ function bind(state, effects, _options) {
         }
     }
 
-    if (!_options.silentStart) {
+    if (!options.silentStart) {
         reenter();
     }
     var io = {
@@ -153,8 +154,8 @@ function bind(state, effects, _options) {
 }
 
 function whenify(union, _branchesAsString, _fallback) {
-    _branchesAsString = _branchesAsString || {};
-    _fallback = _fallback || 'otherwise';
+    var branchesAsString = _branchesAsString || {};
+    var fallback = _fallback || 'otherwise';
     var branches = Object.getOwnProperties(union).filter(function (k) {
         return _isCallable(union[k]);
     });
@@ -162,18 +163,18 @@ function whenify(union, _branchesAsString, _fallback) {
         var missing = branches.filter(function (k) {
             return !selector.hasOwnProperty(k);
         });
-        var hasFallback = selector.hasOwnProperty(_fallback);
+        var hasFallback = selector.hasOwnProperty(fallback);
         for (var k in missing) {
             var branch = missing[k];
             if (hasFallback) {
                 Object.defineProperty(selector, branch, {
                     value: function () {
-                        return selector[_fallback]();
+                        return selector[fallback]();
                     }
                 });
             }
             else {
-                var repr = _branchesAsString[branch];
+                var repr = branchesAsString[branch];
                 Object.defineProperty(selector, branch, {
                     value: function (_varArgs) {
                         var args = Array.apply(null, arguments);
