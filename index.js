@@ -156,7 +156,7 @@ function bind(state, _effects, _options) {
 function whenify(union, _branchesAsString, _fallback) {
     var branchesAsString = _branchesAsString || {};
     var fallback = _fallback || 'otherwise';
-    var branches = Object.getOwnProperties(union).filter(function (k) {
+    var branches = Object.getOwnPropertyNames(union).filter(function (k) {
         return _isCallable(union[k]);
     });
     return function (selector) {
