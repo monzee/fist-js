@@ -120,6 +120,7 @@ function bind(state, _effects, _options) {
                 if (cmd === void 0) return;
                 if (cmd.then) {
                     cmd.then(function (c) {
+                        if (c === void 0) return;
                         if (_isCallable(c)) {
                             c(io);
                         }
@@ -173,7 +174,7 @@ function whenify(union, _branchesAsString, _fallback) {
                     }
                 });
             }
-            else {
+            else !function (branch) {
                 var repr = branchesAsString[branch];
                 Object.defineProperty(selector, branch, {
                     value: function (_varArgs) {
@@ -185,7 +186,7 @@ function whenify(union, _branchesAsString, _fallback) {
                         });
                     }
                 });
-            }
+            }(branch);
         }
         return selector;
     }
