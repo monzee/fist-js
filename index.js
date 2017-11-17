@@ -154,9 +154,11 @@ function bind(state, _effects, _options) {
     return io.run.bind(io);
 }
 
-function whenify(union, _branchesAsString, _fallback) {
+var fallbackKey;
+for (fallbackKey in {otherwise: 0}) break;
+
+function whenify(union, _branchesAsString) {
     var branchesAsString = _branchesAsString || {};
-    var fallback = _fallback || 'otherwise';
     var branches = Object.getOwnPropertyNames(union).filter(function (k) {
         return _isCallable(union[k]);
     });
@@ -164,20 +166,21 @@ function whenify(union, _branchesAsString, _fallback) {
         var missing = branches.filter(function (k) {
             return !selector.hasOwnProperty(k);
         });
-        var hasFallback = selector.hasOwnProperty(fallback);
+        var hasFallback = selector.hasOwnProperty(fallbackKey) &&
+            _isCallable(selector[fallbackKey]);
         for (var k in missing) {
             var branch = missing[k];
             if (hasFallback) {
                 Object.defineProperty(selector, branch, {
-                    value: function () {
-                        return selector[fallback]();
+                    value: function _fallback() {
+                        return selector[fallbackKey]();
                     }
                 });
             }
             else !function (branch) {
                 var repr = branchesAsString[branch];
                 Object.defineProperty(selector, branch, {
-                    value: function (_varArgs) {
+                    value: function _missing(_varArgs) {
                         var args = Array.apply(null, arguments);
                         return Io.raise({
                             message: 'No matching handler for state',
