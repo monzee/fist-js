@@ -83,7 +83,7 @@ function bind(state, _effects, _options) {
     var options = _options || {};
 
     function raise(error) {
-        if (!effects.onError) throw error;
+        if (!_isCallable(effects.onError)) throw error;
         effects.onError(error);
     }
 
@@ -94,13 +94,13 @@ function bind(state, _effects, _options) {
         else if (_isCallable(effects)) {
             effects(state);
         }
-        else if (effects.onEnter) {
+        else if (_isCallable(effects.onEnter)) {
             effects.onEnter(state);
         }
     }
 
     function enter(newState) {
-        if (newState.then) {
+        if (_isCallable(newState.then)) {
             newState.then(enter).catch(raise);
         }
         else {
@@ -110,7 +110,7 @@ function bind(state, _effects, _options) {
     }
 
     function run(action) {
-        if (action.then) {
+        if (_isCallable(action.then)) {
             action.then(run.bind(this)).catch(raise);
         }
         else {
@@ -118,7 +118,7 @@ function bind(state, _effects, _options) {
             try {
                 var cmd = action(state, effects);
                 if (cmd === void 0) return;
-                if (cmd.then) {
+                if (_isCallable(cmd.then)) {
                     cmd.then(function (c) {
                         if (c === void 0) return;
                         if (_isCallable(c)) {
@@ -142,16 +142,20 @@ function bind(state, _effects, _options) {
         }
     }
 
-    if (!options.silentStart) {
-        reenter();
-    }
     var io = {
         enter: enter,
         reenter: reenter,
         run: run,
         raise: raise,
     };
-    return io.run.bind(io);
+    var ref = io.run.bind(io);
+    if (_isCallable(effects.onBind)) {
+        effects.onBind(ref);
+    }
+    if (!options.silentStart) {
+        reenter();
+    }
+    return ref;
 }
 
 var fallbackKey;
