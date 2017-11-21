@@ -141,4 +141,12 @@ describe('Shortcuts', () => {
         num(Action.run(plus(1), plus(-10), plus(300)));
         num(expect(291));
     });
+
+    it("can reenter by calling with no args", () => {
+        let count = 0;
+        let num = bind(0, _ => count++, {manualStart: true});
+        expect(0)(count);
+        num();
+        expect(1)(count);
+    });
 });

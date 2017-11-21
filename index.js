@@ -111,7 +111,7 @@ function bind(state, _effects, _options) {
 
     function run(action) {
         if (!action) {
-            run(Action.reenter());
+            reenter();
         }
         else if (_isCallable(action.then)) {
             action.then(run.bind(this)).catch(raise);
