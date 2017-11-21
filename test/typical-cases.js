@@ -42,7 +42,7 @@ describe('Basics', () => {
         let count = 0;
         let foo = bind('foo', {
             onEnter: _ => count++,
-        }, {silentStart: true});
+        }, {manualStart: true});
         expect(0)(count);
         foo(_ => Io.reenter());
         expect(1)(count);

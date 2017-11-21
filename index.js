@@ -113,6 +113,9 @@ function bind(state, _effects, _options) {
         if (_isCallable(action.then)) {
             action.then(run.bind(this)).catch(raise);
         }
+        else if (!action) {
+            run(Action.reenter());
+        }
         else {
             var io = this;
             try {
@@ -152,7 +155,7 @@ function bind(state, _effects, _options) {
     if (_isCallable(effects.onBind)) {
         effects.onBind(ref);
     }
-    if (!options.silentStart) {
+    if (!options.manualStart) {
         reenter();
     }
     return ref;
