@@ -110,11 +110,11 @@ function bind(state, _effects, _options) {
     }
 
     function run(action) {
-        if (_isCallable(action.then)) {
-            action.then(run.bind(this)).catch(raise);
-        }
-        else if (!action) {
+        if (!action) {
             run(Action.reenter());
+        }
+        else if (_isCallable(action.then)) {
+            action.then(run.bind(this)).catch(raise);
         }
         else {
             var io = this;
